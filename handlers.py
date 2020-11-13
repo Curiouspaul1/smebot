@@ -1,8 +1,12 @@
 from telegram import (
     ReplyKeyboardMarkup,
-    ReplyKeyboardRemove
+    ReplyKeyboardRemove, Update
 )
-from telegram.ext import CommandHandler, CallbackContext
+from telegram.ext import (
+    CommandHandler, CallbackContext,
+    ConversationHandler, MessageHandler,
+    Filters
+)
 import logging
 
 logging.basicConfig(
@@ -43,3 +47,25 @@ def pdetails(update, context: CallbackContext):
     )
 
     return SME_DETAILS
+
+
+def cancel(update: Update, context: CallbackContext) -> int:
+    update.message.reply_text(
+        'Bye! I hope we can talk again some day.',
+        reply_markup=ReplyKeyboardRemove()
+    )
+
+    return ConversationHandler.END
+
+
+def main():
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', start)],
+        states={
+            PERSONAL_DETAILS: [
+                MessageHandler(Filters.regex('*(W,)'), pdetails)
+            ]
+        },
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+    return 'ok'
