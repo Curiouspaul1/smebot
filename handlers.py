@@ -62,7 +62,7 @@ conv_handler = ConversationHandler(
     entry_points=[CommandHandler('start', start)],
     states={
         PERSONAL_DETAILS: [
-            MessageHandler(Filters.regex('*(W,)'), pdetails)
+            MessageHandler(Filters.regex('(W,)+'), pdetails)
         ]
     },
     fallbacks=[CommandHandler('cancel', cancel)]
