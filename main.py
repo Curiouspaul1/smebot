@@ -15,8 +15,8 @@ def response():
         request.get_json(force=True),
         bot
     )
-    result = start(update)
-    return result
+    start(update)
+    return 'ok'
 
 @app.route('/setwebhook', methods=['GET', 'POST'])
 def setWebhook():
