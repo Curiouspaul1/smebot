@@ -76,5 +76,5 @@ def main():
     print("HELLO SOLARSYS")
     start_handler = CommandHandler('start', start)
     dispatcher.add_handler(start_handler)
-    dispatcher.add_handler(conv_handler)
+    #dispatcher.add_handler(conv_handler)
     # Start the Bot
