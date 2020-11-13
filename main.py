@@ -32,7 +32,6 @@ def setWebhook():
 if __name__ == "__main__":
     app.run(threaded=True)
     updater.start_webhook(
-        listen='127.0.0.1',
-        port=5000,
+        listen=URL,
         url_path=f'/{TOKEN}'
     )
