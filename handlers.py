@@ -67,4 +67,3 @@ conv_handler = ConversationHandler(
     },
     fallbacks=[CommandHandler('cancel', cancel)]
 )
-return 'ok'
