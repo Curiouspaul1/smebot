@@ -16,7 +16,7 @@ def response():
         request.get_json(force=True),
         bot
     )
-    dispatcher = Dispatcher(bot=bot, update_queue=update)
+    dispatcher = Dispatcher(bot=bot)
     dispatcher.add_handler(conv_handler)
     return 'ok'
 
