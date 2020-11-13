@@ -1,9 +1,8 @@
 from telegram import (
     ReplyKeyboardMarkup,
-    ReplyKeyboardRemove, Update
+    ReplyKeyboardRemove
 )
-from telegram.ext import Updater, CommandHandler
-import os
+from telegram.ext import CommandHandler, CallbackContext
 import logging
 
 logging.basicConfig(
@@ -16,7 +15,7 @@ PERSONAL_DETAILS, SME_DETAILS, ADD_PRODUCTS = range(3)
 
 
 # Define callback handler
-def start(update):
+def start(update, context: CallbackContext):
     reply_keyboard = [
         ['SME', 'Consumer']
     ]
@@ -32,3 +31,15 @@ def start(update):
     )
 
     return PERSONAL_DETAILS
+
+
+def pdetails(update, context: CallbackContext):
+    update.message.reply_text(
+        "Awesome!, please tell me about yourself, "
+        "provide your full name, email, and phone number, "
+        "separated by comma each e.g: "
+        "John Doe, JohnD@gmail.com, +234567897809",
+        reply_markup=ReplyKeyboardRemove()
+    )
+
+    return SME_DETAILS
