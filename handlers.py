@@ -5,14 +5,6 @@ from telegram import (
 from telegram.ext import Updater, CommandHandler
 import os
 import logging
-from dotenv import load_dotenv
-
-load_dotenv()
-
-token = os.getenv('BOT_TOKEN')
-
-updater = Updater(token=token, use_context=True)
-dispatcher = updater.dispatcher
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -40,4 +32,3 @@ def start(update):
     )
 
     return PERSONAL_DETAILS
-
