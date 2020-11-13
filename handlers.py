@@ -5,8 +5,9 @@ from telegram import (
 from telegram.ext import (
     CommandHandler, CallbackContext,
     ConversationHandler, MessageHandler,
-    Filters
+    Filters, Updater
 )
+from config import TOKEN
 import logging
 
 logging.basicConfig(
@@ -58,12 +59,20 @@ def cancel(update: Update, context: CallbackContext) -> int:
     return ConversationHandler.END
 
 
-conv_handler = ConversationHandler(
-    entry_points=[CommandHandler('start', start)],
-    states={
-        PERSONAL_DETAILS: [
-            MessageHandler(Filters.regex('(W,)+'), pdetails)
-        ]
-    },
-    fallbacks=[CommandHandler('cancel', cancel)]
-)
+updater = Updater(token=TOKEN)
+dispatcher = updater.dispatcher
+
+
+def main():
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', start)],
+        states={
+            PERSONAL_DETAILS: [
+                MessageHandler(Filters.regex('(W,)+'), pdetails)
+            ]
+        },
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+
+    dispatcher.add_handler(conv_handler)
+    # Start the Bot
