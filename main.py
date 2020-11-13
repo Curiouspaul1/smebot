@@ -2,7 +2,7 @@ from config import TOKEN, URL
 from flask import Flask, request
 from telegram import Bot
 import telegram
-from handlers import main
+from handlers import conv_handler
 from telegram.ext import Dispatcher
 
 
@@ -17,7 +17,7 @@ def response():
         bot
     )
     dispatcher = Dispatcher(bot=bot, update_queue=update)
-    dispatcher.add_handler(main)
+    dispatcher.add_handler(conv_handler)
     return 'ok'
 
 

@@ -58,14 +58,13 @@ def cancel(update: Update, context: CallbackContext) -> int:
     return ConversationHandler.END
 
 
-def main():
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('start', start)],
-        states={
-            PERSONAL_DETAILS: [
-                MessageHandler(Filters.regex('*(W,)'), pdetails)
-            ]
-        },
-        fallbacks=[CommandHandler('cancel', cancel)]
-    )
-    return 'ok'
+conv_handler = ConversationHandler(
+    entry_points=[CommandHandler('start', start)],
+    states={
+        PERSONAL_DETAILS: [
+            MessageHandler(Filters.regex('*(W,)'), pdetails)
+        ]
+    },
+    fallbacks=[CommandHandler('cancel', cancel)]
+)
+return 'ok'
