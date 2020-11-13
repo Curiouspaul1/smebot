@@ -17,6 +17,7 @@ def response():
         bot
     )"""
     main()
+    print("HELLO WORLD")
     return 'ok'
 
 

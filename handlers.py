@@ -73,6 +73,6 @@ def main():
         },
         fallbacks=[CommandHandler('cancel', cancel)]
     )
-
+    print("HELLO SOLARSYS")
     dispatcher.add_handler(conv_handler)
     # Start the Bot
