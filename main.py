@@ -21,7 +21,11 @@ def response():
         bot
     )
     for i in update:
-        queue.put(i)
+        try:
+            queue.put(i)
+        except Queue.Empty:
+            print('All results loaded from result_queue')
+            pass
     dispatcher = Dispatcher(bot, update_queue=queue)
     dispatcher.add_handler(start_handler)
     # start(update)
