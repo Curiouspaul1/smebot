@@ -62,7 +62,7 @@ def cancel(update: Update, context: CallbackContext) -> int:
 
 updater = Updater(token=TOKEN)
 dispatcher = updater.dispatcher
-
+start_handler = CommandHandler('start', start)
 
 def main():
     conv_handler = ConversationHandler(
@@ -75,7 +75,6 @@ def main():
         fallbacks=[CommandHandler('cancel', cancel)]
     )
     print("HELLO SOLARSYS")
-    start_handler = CommandHandler('start', start)
     dispatcher.add_handler(start_handler)
     #dispatcher.add_handler(conv_handler)
     # Start the Bot
