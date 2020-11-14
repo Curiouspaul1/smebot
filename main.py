@@ -2,7 +2,7 @@ from config import TOKEN, URL
 from flask import Flask, request
 from telegram import Bot
 import telegram
-from handlers import main, updater, start_handler
+from handlers import main, updater, start_handler, start
 # from telegram.ext import Dispatcher
 
 
@@ -12,12 +12,12 @@ bot = Bot(token=TOKEN)
 
 @app.route(f'/{TOKEN}', methods=['POST'])
 def response():
-    """update = telegram.Update.de_json(
+    update = telegram.Update.de_json(
         request.get_json(force=True),
         bot
-    )"""
-    main()
-    return 'ok'
+    )
+    start(update)
+    return 200
 
 
 @app.route('/setwebhook', methods=['GET', 'POST'])
@@ -30,7 +30,7 @@ def setWebhook():
 
 
 if __name__ == "__main__":
-    app.run(threaded=True)
+    app.run(threaded=True, debug=True)
     dispatcher = updater.dispatcher
     dispatcher.add_handler(start_handler)
     updater.start_webhook(
