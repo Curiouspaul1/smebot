@@ -4,10 +4,12 @@ from telegram import Bot
 import telegram
 from handlers import main, start
 from telegram.ext import Dispatcher, CommandHandler
+from queue import Queue
 
 
 app = Flask(__name__)
 bot = Bot(token=TOKEN)
+queue = Queue()
 
 start_handler = CommandHandler('start', start)
 
@@ -18,7 +20,9 @@ def response():
         request.get_json(force=True),
         bot
     )
-    dispatcher = Dispatcher(bot, update_queue=update)
+    for i in update:
+        queue.put(i)
+    dispatcher = Dispatcher(bot, update_queue=queue)
     dispatcher.add_handler(start_handler)
     # start(update)
     return 'ok'
