@@ -2,16 +2,11 @@ from config import TOKEN, URL
 from flask import Flask, request
 from telegram import Bot
 import telegram
-from handlers import main, start
-from telegram.ext import Dispatcher, CommandHandler
-from queue import Queue
+from handlers import conv_handler, start
 
 
 app = Flask(__name__)
 bot = Bot(token=TOKEN)
-queue = Queue()
-
-start_handler = CommandHandler('start', start)
 
 
 @app.route(f'/{TOKEN}', methods=['POST'])
@@ -20,15 +15,7 @@ def response():
         request.get_json(force=True),
         bot
     )
-    updates = bot.get_updates()
-    for i in updates:
-        try:
-            queue.put(i)
-        except Queue.empty():
-            print('All results loaded from result_queue')
-            pass
-    dispatcher = Dispatcher(bot, update_queue=queue)
-    dispatcher.add_handler(start_handler)
+    conv_handler.handle_update(update)
     # start(update)
     return 'ok'
 
@@ -43,4 +30,4 @@ def setWebhook():
 
 
 if __name__ == "__main__":
-    app.run(threaded=True, debug=True)
+    app.run(threaded=True)

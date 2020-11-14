@@ -60,17 +60,13 @@ def cancel(update: Update, context: CallbackContext) -> int:
     return ConversationHandler.END
 
 
-def main():
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('start', start)],
-        states={
-            PERSONAL_DETAILS: [
-                MessageHandler(Filters.regex('(W,)+'), pdetails)
-            ]
-        },
-        fallbacks=[CommandHandler('cancel', cancel)]
-    )
-    print("HELLO SOLARSYS")
-    dispatcher.add_handler(start_handler)
-    #dispatcher.add_handler(conv_handler)
-    # Start the Bot
+conv_handler = ConversationHandler(
+    entry_points=[CommandHandler('start', start)],
+    states={
+        PERSONAL_DETAILS: [
+            MessageHandler(Filters.regex('(W,)+'), pdetails)
+        ]
+    },
+    fallbacks=[CommandHandler('cancel', cancel)]
+)
+
