@@ -16,7 +16,7 @@ def response():
         request.get_json(force=True),
         bot
     )
-    start(update)
+    # start(update)
     return 'ok'
 
 
