@@ -34,5 +34,4 @@ def setWebhook():
 
 if __name__ == "__main__":
     app.run(threaded=True, debug=True)
-    dispatcher = updater.dispatcher
     dispatcher.add_handler(start_handler)
