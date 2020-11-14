@@ -23,7 +23,7 @@ def response():
     for i in update:
         try:
             queue.put(i)
-        except Queue.Empty:
+        except Queue.empty():
             print('All results loaded from result_queue')
             pass
     dispatcher = Dispatcher(bot, update_queue=queue)
