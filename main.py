@@ -2,12 +2,15 @@ from config import TOKEN, URL
 from flask import Flask, request
 from telegram import Bot
 import telegram
-from handlers import main, updater, start_handler, start
-# from telegram.ext import Dispatcher
+from handlers import main, start
+from telegram.ext import CommandHandler, Updater
 
 
 app = Flask(__name__)
 bot = Bot(token=TOKEN)
+updater = Updater(token=TOKEN)
+dispatcher = updater.dispatcher
+start_handler = CommandHandler('start', start)
 
 
 @app.route(f'/{TOKEN}', methods=['POST'])
@@ -33,10 +36,3 @@ if __name__ == "__main__":
     app.run(threaded=True, debug=True)
     dispatcher = updater.dispatcher
     dispatcher.add_handler(start_handler)
-    updater.start_webhook(
-        listen='0.0.0.0',
-        url_path=TOKEN
-    )
-    updater.bot.set_webhook(
-        URL + TOKEN
-    )
