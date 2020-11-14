@@ -60,10 +60,6 @@ def cancel(update: Update, context: CallbackContext) -> int:
     return ConversationHandler.END
 
 
-updater = Updater(token=TOKEN)
-dispatcher = updater.dispatcher
-start_handler = CommandHandler('start', start)
-
 def main():
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],

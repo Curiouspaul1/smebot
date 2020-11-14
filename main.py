@@ -3,13 +3,13 @@ from flask import Flask, request
 from telegram import Bot
 import telegram
 from handlers import main, start
-from telegram.ext import CommandHandler, Updater
+from telegram.ext import Dispatcher, CommandHandler
 
 
 app = Flask(__name__)
 bot = Bot(token=TOKEN)
-updater = Updater(token=TOKEN)
-dispatcher = updater.dispatcher
+
+dispatcher = Dispatcher(bot, update_queue=bot.get_updates())
 start_handler = CommandHandler('start', start)
 
 
