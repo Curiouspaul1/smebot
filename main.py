@@ -17,7 +17,7 @@ def response():
         bot
     )
     start(update)
-    return 200
+    return 'ok'
 
 
 @app.route('/setwebhook', methods=['GET', 'POST'])
