@@ -21,6 +21,7 @@ PERSONAL_DETAILS, SME_DETAILS, ADD_PRODUCTS = range(3)
 
 # Define callback handler
 def start(update, context: CallbackContext):
+    print("You called")
     reply_keyboard = [
         ['SME', 'Consumer']
     ]
