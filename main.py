@@ -20,7 +20,8 @@ def response():
         request.get_json(force=True),
         bot
     )
-    for i in update:
+    updates = bot.get_updates()
+    for i in updates:
         try:
             queue.put(i)
         except Queue.empty():
