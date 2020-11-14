@@ -37,3 +37,6 @@ if __name__ == "__main__":
         listen='0.0.0.0',
         url_path=TOKEN
     )
+    updater.bot.set_webhook(
+        URL + TOKEN
+    )
