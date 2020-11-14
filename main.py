@@ -9,7 +9,6 @@ from telegram.ext import Dispatcher, CommandHandler
 app = Flask(__name__)
 bot = Bot(token=TOKEN)
 
-dispatcher = Dispatcher(bot, update_queue=bot.get_updates())
 start_handler = CommandHandler('start', start)
 
 
@@ -19,6 +18,8 @@ def response():
         request.get_json(force=True),
         bot
     )
+    dispatcher = Dispatcher(bot, update_queue=update)
+    dispatcher.add_handler(start_handler)
     # start(update)
     return 'ok'
 
@@ -34,4 +35,3 @@ def setWebhook():
 
 if __name__ == "__main__":
     app.run(threaded=True, debug=True)
-    dispatcher.add_handler(start_handler)
