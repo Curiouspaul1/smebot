@@ -3,3 +3,5 @@
 bot/
 *.env
 test.py
+test1.py
+*.db
