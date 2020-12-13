@@ -51,12 +51,13 @@ class Category(Base):
             'Clothing/Fashion', 'Hardware Accessories',
             'Food/Kitchen Ware', 'ArtnDesign'
         ]
+        print([j.name for j in session.query(Category).all()])
         for i in cats:
-            results = []
-            if i not in [j.name for j in Category.query.all()]:
-                results.append(Category(name=i))
-        session.add_all(results)
+            if i not in [j.name for j in session.query(Category).all()]:
+                new = Category(name=i)
+                session.add(new)
         session.commit()
+        print([j.name for j in session.query(Category).all()])
 
 
 class Product(Base):
@@ -65,6 +66,7 @@ class Product(Base):
     name = Column(String(50))
     description = Column(Text)
     price = Column(Float)
+    image = Column(String(250))
     sme_id = Column(Integer, ForeignKey('business.id'))
     sme = relationship("Business", back_populates="product")
 

@@ -1,6 +1,7 @@
 from telegram import (
     ReplyKeyboardMarkup,
-    ReplyKeyboardRemove, Update
+    ReplyKeyboardRemove, Update,
+    InlineKeyboardButton, InlineKeyboardMarkup
 )
 from telegram.ext import (
     CommandHandler, CallbackContext,
@@ -10,7 +11,8 @@ from telegram.ext import (
 from config import TOKEN
 import logging, re
 from sqlalchemy.orm import sessionmaker
-from models import engine, Customer, SmeOwner, Business
+from sqlalchemy.exc import IntegrityError
+from models import engine, User, Business, Category
 
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -24,7 +26,7 @@ updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 
 # Define Options
-CLASS_STATE, SME_DETAILS, CHOOSING, CUSTOMER_DETAILS, ADD_PRODUCTS = range(5)
+FETCH_PREFERENCES, CLASS_STATE, STORE_INFO, SME_DETAILS, CHOOSING, CUSTOMER_DETAILS, ADD_PRODUCTS = range(7)
 
 reply_keyboard = [
     ['SME', 'Customer']
@@ -36,36 +38,77 @@ markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 def start(update, context: CallbackContext) -> int:
     print("You called")
     update.message.reply_text(
-        text="Hi fellow, Welcome to SMEbot ,"
+        "Hi fellow, Welcome to SMEbot ,"
         "Please tell me about yourself, "
         "provide your full name, email, and phone number, "
         "separated by comma each e.g: "
         "John Doe, JohnD@gmail.com, +234567897809"
     )
-
     return CLASS_STATE
 
 
 def classer(update, context):
-    user = update.message.from_user
+    data = update.message.text.split(',')
+    new_user = User(
+        name=data[0], email=data[1],
+        telephone=data[2]
+    )
+    session.add(new_user)
+    try:
+        session.commit()
+    except IntegrityError:
+        print("Error: Duplicate data")
+        session.rollback()
+        return CLASS_STATE
     update.message.reply_text(
-        f"Welcome {user}, "
+        text="Collected information succesfully!.."
         "Which of the following do you identify as ?",
         reply_markup=markup
     )
     return CHOOSING
 
 
-def cpdetails(update, context: CallbackContext) -> int:
+def customer_details(update, context: CallbackContext) -> int:
+    categories = [
+        ['Clothing/Fashion', 'Hardware Accessories'],
+        ['Food/Kitchen Ware', 'ArtnDesign']
+    ]
+    markup = ReplyKeyboardMarkup(categories, one_time_keyboard=True)
     update.message.reply_text(
-        "Awesome!, please tell me about yourself, "
-        "provide your full name, email, and phone number, "
-        "separated by comma each e.g: "
-        "John Doe, JohnD@gmail.com, +234567897809",
-        reply_markup=ReplyKeyboardRemove()
+        "Here's a list of categories available"
+        "Choose one that matches your interest",
+        reply_markup=markup
     )
 
-    return CHOOSING
+    return FETCH_PREFERENCES
+
+
+def fetch_preference(update, context: CallbackContext) -> int:
+    if update.message.text:
+        choice = update.message.text
+        result = session.query(Category).filter_by(name=choice).first().sme
+        print(result)
+        for i in result:
+            button = [[InlineKeyboardButton(
+                text='View Products',
+                callback_data=i.name
+            )]]
+            update.message.reply_text(
+                f"{i.name}",
+                reply_markup=InlineKeyboardMarkup(button)
+            )
+    return FETCH_PREFERENCES
+
+
+def fetch_bizpref(update, context):
+    choice = update.message.text
+    biz = session.query(Business).filter_by(name=choice).first().product
+    print(biz)
+    for i in biz:
+        update.message.reply_text(
+            f"{i.name}"
+        )
+    return
 
 
 def smedetails(update, context: CallbackContext) -> int:
@@ -120,7 +163,16 @@ def main():
                 ),
                 MessageHandler(
                     Filters.regex(r'(^Customer|customer|CUSTOMER)$'),
-                    cpdetails
+                    customer_details
+                )
+            ],
+            FETCH_PREFERENCES: [
+                MessageHandler(
+                    Filters.regex(r'^(Clothing/Fashion|Hardware Accessories|Food/Kitchen Ware|ArtnDesign)$'),
+                    fetch_preference
+                ),
+                MessageHandler(
+                    Filters.all, fetch_bizpref
                 )
             ],
             ADD_PRODUCTS: [
