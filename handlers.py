@@ -8,14 +8,17 @@ from telegram.ext import (
     ConversationHandler, MessageHandler,
     Filters, Updater, CallbackQueryHandler
 )
-from config import TOKEN
+from config import TOKEN, api_key, api_secret
 import logging, re
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from models import engine, User, Business, Category
+import cloudinary
+
 
 Session = sessionmaker(bind=engine)
 session = Session()
+
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -25,8 +28,16 @@ logger = logging.getLogger(__name__)
 updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 
+
+# configure cloudinary
+cloudinary.config(
+    cloud_name="curiouspaul",
+    api_key=api_key,
+    api_secret=api_secret
+)
+
 # Define Options
-FETCH_PREFERENCES, FETCH_SUBPREFERENCE, CLASS_STATE, SME_DETAILS, CHOOSING, ADD_PRODUCTS = range(6)
+FETCH_PREFERENCES, CHOOSESME_CAT, FETCH_SUBPREFERENCE, CLASS_STATE, SME_DETAILS, CHOOSING, ADD_PRODUCTS = range(7)
 
 reply_keyboard = [
     ['SME', 'Customer']
@@ -48,9 +59,13 @@ def start(update, context: CallbackContext) -> int:
 
 
 def classer(update, context):
+    print(update.message.from_user)
+    name = update.message.from_user.first_name + ' ' + \
+        update.message.from_user.last_name
+    print(name)
     data = update.message.text.split(',')
     new_user = User(
-        name=data[0], email=data[1],
+        name=name, email=data[1],
         telephone=data[2]
     )
     session.add(new_user)
@@ -104,35 +119,76 @@ def fetch_preference(update, context: CallbackContext) -> int:
 
 
 def fetch_bizpref(update, context):
+    print(update)
     choice = update.callback_query.data
     print(choice)
     biz = session.query(Business).filter_by(name=choice).first().product
-    print(biz)
     for i in biz:
-        update.message.reply_text(
-            f"{i.name}"
+        update.callback_query.message.reply_text(
+            f"{i.name}: \n"
+            f"Description: \n {i.description}"
         )
+    # TODO: Add contact button
     return
 
 
 def smedetails(update, context: CallbackContext) -> int:
+    global owner
     user = update.message.from_user
     msg = update.message.text.split(',')
+    # find user in db
+    name = update.message.from_user.first_name + ' ' + \
+        update.message.from_user.last_name
+    owner = session.query(User).filter_by(name=name).first()
+    owner.is_smeowner = True
+    session.commit()
     print(msg)
     update.message.reply_text(
         f"Great! {user.first_name}, please tell me about your business, "
-        "provide your BrandName, Brand email, and phone number, Niche "
-        "separated by comma each e.g: "
-        "JDWears, JDWears@gmail.com, +234567897809, "
-        "Fashion/Clothing", reply_markup=ReplyKeyboardRemove()
+        "provide your BrandName, Brand email, Address, and phone number"
+        "in that order, each separated by comma(,) each e.g: "
+        "JDWears, JDWears@gmail.com, 101-Mike Avenue-Ikeja, +234567897809",
+        reply_markup=ReplyKeyboardRemove()
     )
 
-    return ADD_PRODUCTS
+    return CHOOSESME_CAT
 
-#def customer_details(updata, context: CallbackContext) -> int:
+
+def smecat(update, context):
+    # create business
+    data = update.message.text.split(',')
+    newbiz = Business(
+        name=data[0], email=data[1],
+        address=data[2], telephone=data[3],
+        owner=owner
+    )
+    session.add(newbiz)
+    try:
+        session.commit()
+    except IntegrityError:
+        print("Duplicate data")
+        update.mesage.reply_text(
+            "Business with email already exists, try again"
+        )
+        return CHOOSESME_CAT
+    categories = [
+        ['Clothing/Fashion', 'Hardware Accessories'],
+        ['Food/Kitchen Ware', 'ArtnDesign']
+    ]
+    markup = ReplyKeyboardMarkup(categories, one_time_keyboard=True)
+    update.message.reply_text(
+        "Pick a category for your business from the options",
+        reply_markup=markup
+    )
+    return ADD_PRODUCTS
 
 
 def products(update: Update, context: CallbackContext):
+    # update business category
+    biz = owner.sme
+    cat_ = session.query(Category).filter_by(name=update.message.text).first()
+    biz.category = cat_
+    session.commit()
     update.message.reply_text(
         "Thanks for filling the form",
         reply_markup=ReplyKeyboardRemove()
@@ -147,9 +203,6 @@ def cancel(update: Update, context: CallbackContext) -> int:
     )
 
     return ConversationHandler.END
-
-
-#def pick_interest()
 
 
 def main():
@@ -185,6 +238,12 @@ def main():
             FETCH_SUBPREFERENCE: [
                 CallbackQueryHandler(
                     fetch_bizpref
+                )
+            ],
+            CHOOSESME_CAT: [
+                MessageHandler(
+                    Filters.all,
+                    smecat
                 )
             ]
         },

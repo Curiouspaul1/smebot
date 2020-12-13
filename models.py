@@ -49,7 +49,7 @@ class Category(Base):
     def add_categories():
         cats = [
             'Clothing/Fashion', 'Hardware Accessories',
-            'Food/Kitchen Ware', 'ArtnDesign'
+            'Food/Kitchen Ware', 'ArtnDesign', 'Other'
         ]
         print([j.name for j in session.query(Category).all()])
         for i in cats:
