@@ -6,7 +6,7 @@ from telegram import (
 from telegram.ext import (
     CommandHandler, CallbackContext,
     ConversationHandler, MessageHandler,
-    Filters, Updater
+    Filters, Updater, CallbackQueryHandler
 )
 from config import TOKEN
 import logging, re
@@ -26,7 +26,7 @@ updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 
 # Define Options
-FETCH_PREFERENCES, CLASS_STATE, STORE_INFO, SME_DETAILS, CHOOSING, CUSTOMER_DETAILS, ADD_PRODUCTS = range(7)
+FETCH_PREFERENCES, FETCH_SUBPREFERENCE, CLASS_STATE, SME_DETAILS, CHOOSING, ADD_PRODUCTS = range(6)
 
 reply_keyboard = [
     ['SME', 'Customer']
@@ -57,6 +57,9 @@ def classer(update, context):
     try:
         session.commit()
     except IntegrityError:
+        update.message.reply_text(
+            "User with email already exists, try again"
+        )
         print("Error: Duplicate data")
         session.rollback()
         return CLASS_STATE
@@ -97,11 +100,12 @@ def fetch_preference(update, context: CallbackContext) -> int:
                 f"{i.name}",
                 reply_markup=InlineKeyboardMarkup(button)
             )
-    return FETCH_PREFERENCES
+    return FETCH_SUBPREFERENCE
 
 
 def fetch_bizpref(update, context):
-    choice = update.message.text
+    choice = update.callback_query.data
+    print(choice)
     biz = session.query(Business).filter_by(name=choice).first().product
     print(biz)
     for i in biz:
@@ -170,15 +174,17 @@ def main():
                 MessageHandler(
                     Filters.regex(r'^(Clothing/Fashion|Hardware Accessories|Food/Kitchen Ware|ArtnDesign)$'),
                     fetch_preference
-                ),
-                MessageHandler(
-                    Filters.all, fetch_bizpref
                 )
             ],
             ADD_PRODUCTS: [
                 MessageHandler(
                     Filters.all,
                     products
+                )
+            ],
+            FETCH_SUBPREFERENCE: [
+                CallbackQueryHandler(
+                    fetch_bizpref
                 )
             ]
         },
