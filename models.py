@@ -35,7 +35,7 @@ class User(Base):
     is_smeowner = Column(Boolean, default=False)
     email = Column(String(80), unique=True)
     telephone = Column(String(20))
-    preference = Column(String(50))
+    preference = Column(Text, default='')
     sme = relationship("Business", uselist=False, back_populates="owner")
 
 
