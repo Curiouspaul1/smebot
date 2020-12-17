@@ -2,10 +2,12 @@ from sqlalchemy import (
     create_engine,
     Column, Integer,
     String, ForeignKey, Text,
-    Float, Boolean
+    Float, Boolean, DateTime
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
+from datetime import datetime as dt
+
 Base = declarative_base()
 engine = create_engine(
     "sqlite:////home/paul/Documents/projects/smebot/dev.db"
@@ -36,6 +38,7 @@ class User(Base):
     email = Column(String(80), unique=True)
     telephone = Column(String(20))
     preference = Column(Text, default='')
+    signup_date = Column(Date, default=dt.utcnow())
     sme = relationship("Business", uselist=False, back_populates="owner")
 
 
@@ -69,6 +72,7 @@ class Product(Base):
     image = Column(String(250))
     sme_id = Column(Integer, ForeignKey('business.id'))
     sme = relationship("Business", back_populates="product")
+    datecreated = Column(DateTime, default=dt.utcnow())
 
 
 if __name__ == "__main__":

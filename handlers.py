@@ -9,15 +9,18 @@ from telegram.ext import (
     Filters, Updater, CallbackQueryHandler
 )
 from config import TOKEN, api_key, api_secret
-import logging, re
+import re
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from models import engine, User, Business, Category, Product
 import cloudinary
 from cloudinary.uploader import upload
+from apscheduler.schedulers.background import BackgroundScheduler
+import time
 
 Session = sessionmaker(bind=engine)
 session = Session()
+sched = BackgroundScheduler()
 
 
 logging.basicConfig(
@@ -38,8 +41,8 @@ cloudinary.config(
 
 # Define Options
 FETCH_PREFERENCES, CHOOSESME_CAT, FETCH_SUBPREFERENCE, \
-    CLASS_STATE, SME_DETAILS, \
-    CHOOSING, ADD_PRODUCTS, FETCH_SMECONTACT = range(8)
+    CLASS_STATE, SME_DETAILS, FETCH_UPDATES, \
+    CHOOSING, ADD_PRODUCTS, FETCH_SMECONTACT = range(9)
 
 reply_keyboard = [
     [
@@ -58,22 +61,56 @@ markup = InlineKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
 # Define callback handler
 def start(update, context: CallbackContext) -> int:
-    print("You called")
-    update.message.reply_text(
-        "Hi fellow, Welcome to SMEbot ,"
-        "Please tell me about yourself, "
-        "provide your full name, email, and phone number, "
-        "separated by comma each e.g: "
-        "John Doe, JohnD@gmail.com, +234567897809"
-    )
-    return CLASS_STATE
-
-
-def classer(update, context):
-    print(update.message.from_user)
     name = update.message.from_user.first_name + ' ' + \
         update.message.from_user.last_name
     print(name)
+    user_ = session.query(User).filter_by(name=name).first()
+    if user_ is not None:
+        global owner
+        owner = user_
+        if user_.is_smeowner:
+            button = [[
+                InlineKeyboardButton(
+                    text="Add new products",
+                    callback_data=user_.sme.category.name
+                )
+            ]]
+            update.message.reply_text(
+                "Welcome back, what do you want to do",
+                reply_markup=InlineKeyboardMarkup(button)
+            )
+            return ADD_PRODUCTS
+        else:
+            global customer
+            customer = user_
+            button = [[
+                InlineKeyboardButton(
+                    text="View Businesses",
+                    callback_data='customer'
+                )
+            ]]
+            update.message.reply_text(
+                "Welcome back, what do you want to do",
+                reply_markup=InlineKeyboardMarkup(button)
+            )
+            return CHOOSING
+    else:
+        print("You called")
+        update.message.reply_text(
+            "Hi fellow, Welcome to SMEbot ,"
+            "Please tell me about yourself, "
+            "provide your full name, email, and phone number, "
+            "separated by comma each e.g: "
+            "John Doe, JohnD@gmail.com, +234567897809"
+        )
+        return CLASS_STATE
+
+
+def classer(update, context):
+    #print(update.message.from_user)
+    name = update.message.from_user.first_name + ' ' + \
+        update.message.from_user.last_name
+    #print(name)
     data = update.message.text.split(',')
     new_user = User(
         name=name, email=data[1],
@@ -92,7 +129,7 @@ def classer(update, context):
     global customer
     customer = new_user
     update.message.reply_text(
-        text="Collected information succesfully!.."
+        text="Collected information succesfully!..🎉🎉 \n"
         "Which of the following do you identify as ?",
         reply_markup=markup
     )
@@ -100,6 +137,7 @@ def classer(update, context):
 
 
 def customer_details(update, context: CallbackContext) -> int:
+    #print(update.callback_query.data.lower() == 'sme')
     if update.callback_query.data.lower() == 'sme':
         global owner
         user = update.callback_query.message.from_user
@@ -158,24 +196,37 @@ def fetch_preference(update, context: CallbackContext) -> int:
     if update.callback_query.data:
         choice = update.callback_query.data
         result = session.query(Category).filter_by(name=choice).first().sme
-        print(result)
+        #print(result)
         for i in result:
             button = [
                 [
                     InlineKeyboardButton(
                         text='View Products',
                         callback_data=i.name
-                    ),
+                    )
+                ],
+                [
                     InlineKeyboardButton(
                         text="Select for updates",
                         callback_data='pref'+','+i.name
                     )
                 ]
             ]
-            update.callback_query.message.reply_text(
-                f"{i.name}".upper(),
-                reply_markup=InlineKeyboardMarkup(button)
-            )
+            biz = session.query(Business).filter_by(name=i.name).first()
+            #print(biz.product)
+            if len(biz.product) > 0:
+                ref = biz.product[0]
+                #print(ref.image)
+                update.callback_query.message.reply_photo(
+                    photo=ref.image,
+                    caption=f"{i.name}".upper(),
+                    reply_markup=InlineKeyboardMarkup(button)
+                )
+            else:
+                update.callback_query.message.reply_text(
+                    f"{i.name}".upper(),
+                    reply_markup=InlineKeyboardMarkup(button)
+                )
     return FETCH_SUBPREFERENCE
 
 
@@ -194,18 +245,18 @@ def fetch_bizpref(update, context):
             ]
         ]
         update.callback_query.message.reply_text(
-            "Preference set successfully",
+            "Preference set successfully 🎉",
             reply_markup=InlineKeyboardMarkup(button)
         )
+        getupdates(update, context)
         return FETCH_PREFERENCES
     else:
         choice = update.callback_query.data
         biz = session.query(Business).filter_by(name=choice).first().product
+        print(biz)
         for i in biz:
             update.callback_query.message.reply_photo(
-                photo=cloudinary.CloudinaryImage(i.image).build_url(
-                    width=50, height=80
-                ),
+                photo=i.image,
                 caption=f"{i.name} \nDescription: {i.description}\nPrice:{i.price}"
             )
             update.callback_query.message.reply_text(
@@ -217,39 +268,45 @@ def fetch_bizpref(update, context):
                     )]]
                 )
             )
-            print(i.sme.owner.email)
+        biz = session.query(Business).filter_by(name=choice).first()
+        button = [
+            [
+                InlineKeyboardButton(
+                    text="View more Businesses in same category",
+                    callback_data=biz.category.name
+                )
+            ]
+        ]
+        update.callback_query.message.reply_text(
+            text="Done..?",
+            reply_markup=InlineKeyboardMarkup(button)
+        )
         return FETCH_SMECONTACT
 
 
 def smecontact(update, context):
+    check = [i.name.lower() for i in session.query(Category).all()]
+    print(update.callback_query.data.lower() in check)
+    if update.callback_query.data.lower() in check:
+        return fetch_preference(update, context)
     data = update.callback_query.data
     data = session.query(User).filter_by(email=data).first()
     update.callback_query.message.reply_text(
         f"Telephone: {data.telephone}, "
         f"Email: {data.email}"
     )
+    return -1
+
+
+def getupdates(update, context):
+    print(update)
+    time.sleep(3)
+    print("jump")
     return
 
 
-# def smedetails(update, context: CallbackContext) -> int:
-#     global owner
-#     user = update.message.from_user
-#     # find user in db
-#     name = update.message.from_user.first_name + ' ' + \
-#         update.message.from_user.last_name
-#     owner = session.query(User).filter_by(name=name).first()
-#     owner.is_smeowner = True
-#     session.commit()
-#     print(msg)
-#     update.message.reply_text(
-#         f"Great! {user.first_name}, please tell me about your business, "
-#         "provide your BrandName, Brand email, Address, and phone number"
-#         "in that order, each separated by comma(,) each e.g: "
-#         "JDWears, JDWears@gmail.com, 101-Mike Avenue-Ikeja, +234567897809",
-#         reply_markup=ReplyKeyboardRemove()
-#     )
+def scheduler():
 
-#     return CHOOSESME_CAT
 
 
 def smecat(update, context):
@@ -296,7 +353,7 @@ def products(update, context):
         )
     ]]
     update.message.reply_text(
-        "Lets add some of your products - shall we>, ",
+        "Lets add some of your products - shall we>, 🛍",
         reply_markup=InlineKeyboardMarkup(button)
     )
     return ADD_PRODUCTS
@@ -320,7 +377,7 @@ def product_info(update: Update, context: CallbackContext):
     photo.download(out=file_)
     data = update.message.caption.split(',')
     # upload image to cloudinary
-    send_photo = upload('product_image')
+    send_photo = upload('product_image', width=200, height=150, crop='thumb')
     # create new product
     newprod = Product(
         name=data[0], description=data[1],
@@ -404,6 +461,11 @@ def main():
             FETCH_SMECONTACT: [
                 CallbackQueryHandler(
                     smecontact
+                )
+            ],
+            FETCH_UPDATES: [
+                CallbackQueryHandler(
+                    getupdates
                 )
             ]
         },
