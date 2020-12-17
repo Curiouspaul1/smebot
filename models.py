@@ -38,7 +38,7 @@ class User(Base):
     email = Column(String(80), unique=True)
     telephone = Column(String(20))
     preference = Column(Text, default='')
-    signup_date = Column(Date, default=dt.utcnow())
+    signup_date = Column(DateTime, default=dt.utcnow())
     sme = relationship("Business", uselist=False, back_populates="owner")
 
 
