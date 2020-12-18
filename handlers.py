@@ -159,7 +159,7 @@ def customer_details(update, context: CallbackContext) -> int:
         user = update.callback_query.message.from_user
         # find user in db
         if update.callback_query.message.from_user.first_name is None:
-            name = update.message.from_user.last_name
+            name = update.callback_query.message.from_user.last_name
         elif update.callback_query.message.from_user.last_name is None:
             name = update.callback_query.message.from_user.first_name
         else:
