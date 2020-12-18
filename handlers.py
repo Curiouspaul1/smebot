@@ -63,17 +63,18 @@ def start(update, context: CallbackContext) -> int:
         global owner
         owner = user_
         if user_.is_smeowner:
-            button = [[
-                InlineKeyboardButton(
-                    text="Add new products",
-                    callback_data=user_.sme.category.name
+            if user_.sme.category:
+                button = [[
+                    InlineKeyboardButton(
+                        text="Add new products",
+                        callback_data=user_.sme.category.name
+                    )
+                ]]
+                update.message.reply_text(
+                    "Welcome back, what do you want to do",
+                    reply_markup=InlineKeyboardMarkup(button)
                 )
-            ]]
-            update.message.reply_text(
-                "Welcome back, what do you want to do",
-                reply_markup=InlineKeyboardMarkup(button)
-            )
-            return ADD_PRODUCTS
+                return ADD_PRODUCTS
         else:
             global customer
             global pref
