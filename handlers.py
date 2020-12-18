@@ -55,8 +55,13 @@ markup = InlineKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
 # Define callback handler
 def start(update, context: CallbackContext) -> int:
-    name = update.message.from_user.first_name + ' ' + \
-        update.message.from_user.last_name
+    if update.message.from_user.first_name is None:
+        name = update.message.from_user.last_name
+    elif update.message.from_user.last_name is None:
+        name = update.message.from_user.last_name
+    else:
+        name = update.message.from_user.first_name + ' ' + \
+            update.message.from_user.last_name
     print(name)
     user_ = session.query(User).filter_by(name=name).first()
     if user_ is not None:
