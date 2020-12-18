@@ -105,9 +105,9 @@ def start(update, context: CallbackContext) -> int:
 
 def classer(update, context):
     #print(update.message.from_user)
-    if not update.message.from_user.first_name:
+    if update.message.from_user.first_name is None:
         name = update.message.from_user.last_name
-    elif not update.message.from_user.last_name:
+    elif update.message.from_user.last_name is None:
         name = update.message.from_user.last_name
     name = update.message.from_user.first_name + ' ' + \
         update.message.from_user.last_name
