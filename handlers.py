@@ -161,7 +161,7 @@ def customer_details(update, context: CallbackContext) -> int:
         if update.callback_query.message.from_user.first_name is None:
             name = update.message.from_user.last_name
         elif update.callback_query.message.from_user.last_name is None:
-            name = update.message.from_user.first_name
+            name = update.callback_query.message.from_user.first_name
         else:
             name = update.callback_query.message.from_user.first_name + ' ' + \
                 update.callback_query.message.from_user.last_name
