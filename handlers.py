@@ -105,6 +105,10 @@ def start(update, context: CallbackContext) -> int:
 
 def classer(update, context):
     #print(update.message.from_user)
+    if not update.message.from_user.first_name:
+        name = update.message.from_user.last_name
+    elif not update.message.from_user.last_name:
+        name = update.message.from_user.last_name
     name = update.message.from_user.first_name + ' ' + \
         update.message.from_user.last_name
     #print(name)
@@ -259,6 +263,17 @@ def fetch_bizpref(update, context):
         choice = update.callback_query.data
         biz = session.query(Business).filter_by(name=choice).first().product
         print(biz)
+        if len(biz) < 1:
+            button = [[
+                InlineKeyboardButton(
+                    text="View other categories",
+                    callback_data=biz.category.name
+                )
+            ]]
+            update.callback_query.message.reply_text(
+                "Nothing here yet",
+                reply_markup=InlineKeyboardMarkup(button)
+            )
         for i in biz:
             update.callback_query.message.reply_photo(
                 photo=i.image,
