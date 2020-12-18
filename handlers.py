@@ -109,8 +109,9 @@ def classer(update, context):
         name = update.message.from_user.last_name
     elif update.message.from_user.last_name is None:
         name = update.message.from_user.last_name
-    name = update.message.from_user.first_name + ' ' + \
-        update.message.from_user.last_name
+    else:
+        name = update.message.from_user.first_name + ' ' + \
+            update.message.from_user.last_name
     #print(name)
     data = update.message.text.split(',')
     if len(data) < 3 or len(data) > 3:
