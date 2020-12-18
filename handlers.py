@@ -219,7 +219,8 @@ def fetch_preference(update, context: CallbackContext) -> int:
                 )
             ]]
             update.callback_query.message.reply_text(
-                "Nothing here yet"
+                "Nothing here yet",
+                reply_markup=InlineKeyboardMarkup(button)
             )
             return CHOOSING
         for i in result:
