@@ -22,12 +22,6 @@ Session = sessionmaker(bind=engine)
 session = Session()
 sched = BackgroundScheduler()
 
-
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
-logger = logging.getLogger(__name__)
 updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 
@@ -82,7 +76,9 @@ def start(update, context: CallbackContext) -> int:
             return ADD_PRODUCTS
         else:
             global customer
+            global pref
             customer = user_
+            pref = customer.preference
             button = [[
                 InlineKeyboardButton(
                     text="View Businesses",
@@ -112,6 +108,14 @@ def classer(update, context):
         update.message.from_user.last_name
     #print(name)
     data = update.message.text.split(',')
+    if len(data) < 3 or len(data) > 3:
+        update.message.reply_text(
+            "Invalid entry, please make sure to input the details "
+            "as requested in the instructions"
+        )
+        update.message.reply_text(
+            "Type /start, to restart bot"
+        )
     new_user = User(
         name=name, email=data[1],
         telephone=data[2]
@@ -299,19 +303,53 @@ def smecontact(update, context):
 
 
 def getupdates(update, context):
-    print(update)
-    time.sleep(3)
-    print("jump")
-    return
-
-
-def scheduler():
-
+    print("Called")
+    result = []
+    print(result)
+    pref = customer.preference.split(',')
+    print(pref)
+    for i in pref:
+        biz = session.query(Business).filter_by(
+            name=i
+        ).first()
+        if biz:
+            item = session.query(Product).filter_by(
+                name=biz.latest
+            ).first()
+            if item:
+                result.append(item)
+                biz.latest = None
+                session.commit()
+    if len(result) > 0:
+        for i in result:
+            update.callback_query.message.reply_photo(
+                photo=i.image,
+                caption=f"{i.sme.name}\n=========\n{i.name} \nDescription: {i.description}\nPrice:{i.price}"
+            )
+    else:
+        update.callback_query.message.reply_text(
+            "No new updates"
+        )
+    time.sleep(86400)
+    return getupdates(update, context)
 
 
 def smecat(update, context):
     # create business
     data = update.message.text.split(',')
+    if len(data) < 4 or len(data) > 4:
+        button = [
+            [InlineKeyboardButton(
+                text="Continue..",
+                callback_data="sme"
+            )]
+        ]
+        update.message.reply_text(
+            "Invalid entry, please make sure to input the details "
+            "as requested in the instructions",
+            reply_markup=InlineKeyboardMarkup(button)
+        )
+        return CHOOSING
     newbiz = Business(
         name=data[0], email=data[1],
         address=data[2], telephone=data[3],
@@ -385,6 +423,7 @@ def product_info(update: Update, context: CallbackContext):
         sme=owner.sme
     )
     session.add(newprod)
+    owner.sme.latest = newprod.name
     session.commit()
     button = [[InlineKeyboardButton(
         text='Add another product',

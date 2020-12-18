@@ -23,6 +23,7 @@ class Business(Base):
     address = Column(String(50))
     telephone = Column(String(20))
     email = Column(String(50), unique=True)
+    latest = Column(String(100))
     category_id = Column(Integer, ForeignKey('category.id'))
     owner_id = Column(Integer, ForeignKey('user.id'))
     product = relationship("Product", back_populates="sme")
@@ -66,7 +67,7 @@ class Category(Base):
 class Product(Base):
     __tablename__ = 'product'
     id = Column(Integer, primary_key=True)
-    name = Column(String(50))
+    name = Column(String(100))
     description = Column(Text)
     price = Column(Float)
     image = Column(String(250))
