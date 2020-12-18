@@ -119,6 +119,7 @@ def classer(update, context):
             update.message.from_user.last_name
     #print(name)
     data = update.message.text.split(',')
+    print(data)
     if len(data) < 3 or len(data) > 3:
         update.message.reply_text(
             "Invalid entry, please make sure to input the details "
