@@ -157,8 +157,13 @@ def customer_details(update, context: CallbackContext) -> int:
         global owner
         user = update.callback_query.message.from_user
         # find user in db
-        name = update.callback_query.message.chat.first_name + ' ' + \
-            update.callback_query.message.chat.last_name
+        if update.message.from_user.first_name is None:
+            name = update.message.from_user.last_name
+        elif update.message.from_user.last_name is None:
+            name = update.message.from_user.first_name
+        else:
+            name = update.message.from_user.first_name + ' ' + \
+                update.message.from_user.last_name
         owner = session.query(User).filter_by(name=name).first()
         owner.is_smeowner = True
         session.commit()
