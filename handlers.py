@@ -165,6 +165,7 @@ def customer_details(update, context: CallbackContext) -> int:
         else:
             name = update.callback_query.message.from_user.first_name + ' ' + \
                 update.callback_query.message.from_user.last_name
+        print(name)
         owner = session.query(User).filter_by(name=name).first()
         owner.is_smeowner = True
         session.commit()
