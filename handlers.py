@@ -58,7 +58,7 @@ def start(update, context: CallbackContext) -> int:
     if update.message.from_user.first_name is None:
         name = update.message.from_user.last_name
     elif update.message.from_user.last_name is None:
-        name = update.message.from_user.last_name
+        name = update.message.from_user.first_name
     else:
         name = update.message.from_user.first_name + ' ' + \
             update.message.from_user.last_name
@@ -113,7 +113,7 @@ def classer(update, context):
     if update.message.from_user.first_name is None:
         name = update.message.from_user.last_name
     elif update.message.from_user.last_name is None:
-        name = update.message.from_user.last_name
+        name = update.message.from_user.first_name
     else:
         name = update.message.from_user.first_name + ' ' + \
             update.message.from_user.last_name
@@ -211,7 +211,17 @@ def fetch_preference(update, context: CallbackContext) -> int:
     if update.callback_query.data:
         choice = update.callback_query.data
         result = session.query(Category).filter_by(name=choice).first().sme
-        #print(result)
+        if len(result) < 1:
+            button = [[
+                InlineKeyboardButton(
+                    text="Select another Category?",
+                    callback_data="customer"
+                )
+            ]]
+            update.callback_query.message.reply_text(
+                "Nothing here yet"
+            )
+            return CHOOSING
         for i in result:
             button = [
                 [
@@ -267,12 +277,12 @@ def fetch_bizpref(update, context):
         return FETCH_PREFERENCES
     else:
         choice = update.callback_query.data
-        biz = session.query(Business).filter_by(name=choice).first().product
-        print(biz)
+        if biz:
+            biz = session.query(Business).filter_by(name=choice).first().product
         if len(biz) < 1:
             button = [[
                 InlineKeyboardButton(
-                    text="View other categories",
+                    text="View other businesses",
                     callback_data=biz.category.name
                 )
             ]]
@@ -280,6 +290,7 @@ def fetch_bizpref(update, context):
                 "Nothing here yet",
                 reply_markup=InlineKeyboardMarkup(button)
             )
+            return FETCH_PREFERENCES
         for i in biz:
             update.callback_query.message.reply_photo(
                 photo=i.image,
