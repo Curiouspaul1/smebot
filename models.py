@@ -10,7 +10,7 @@ from datetime import datetime as dt
 
 Base = declarative_base()
 engine = create_engine(
-    "sqlite:////home/paul/Documents/projects/smebot/dev.db"
+    os.getenv("DATABASE_URL")
 )
 Session = sessionmaker(bind=engine)
 session = Session()
