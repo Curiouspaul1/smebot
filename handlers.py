@@ -55,6 +55,7 @@ markup = InlineKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
 # Define callback handler
 def start(update, context: CallbackContext) -> int:
+    global name
     if update.message.from_user.first_name is None:
         name = update.message.from_user.last_name
     elif update.message.from_user.last_name is None:
@@ -62,7 +63,6 @@ def start(update, context: CallbackContext) -> int:
     else:
         name = update.message.from_user.first_name + ' ' + \
             update.message.from_user.last_name
-    print(name)
     user_ = session.query(User).filter_by(name=name).first()
     if user_ is not None:
         global owner
@@ -109,15 +109,7 @@ def start(update, context: CallbackContext) -> int:
 
 
 def classer(update, context):
-    #print(update.message.from_user)
-    if update.message.from_user.first_name is None:
-        name = update.message.from_user.last_name
-    elif update.message.from_user.last_name is None:
-        name = update.message.from_user.first_name
-    else:
-        name = update.message.from_user.first_name + ' ' + \
-            update.message.from_user.last_name
-    #print(name)
+    print(name)
     data = update.message.text.split(',')
     print(data)
     if len(data) < 3 or len(data) > 3:
@@ -158,13 +150,6 @@ def customer_details(update, context: CallbackContext) -> int:
         global owner
         user = update.callback_query.message.from_user
         # find user in db
-        if update.callback_query.message.from_user.first_name is None:
-            name = update.callback_query.message.from_user.last_name
-        elif update.callback_query.message.from_user.last_name is None:
-            name = update.callback_query.message.from_user.first_name
-        else:
-            name = update.callback_query.message.from_user.first_name + ' ' + \
-                update.callback_query.message.from_user.last_name
         print(name)
         owner = session.query(User).filter_by(name=name).first()
         owner.is_smeowner = True
