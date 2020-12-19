@@ -377,33 +377,34 @@ def smecat(update, context):
             reply_markup=InlineKeyboardMarkup(button)
         )
         return CHOOSING
-    newbiz = Business(
-        name=data[0], email=data[1],
-        address=data[2], telephone=data[3],
-        owner=owner
-    )
-    # TODO: Add checks for correct len of input data
-    session.add(newbiz)
-    try:
-        session.commit()
-    except IntegrityError:
-        session.rollback()
-        print("Duplicate data")
-        update.message.reply_text(
-            "Business with email already exists, try again"
+    else:
+        newbiz = Business(
+            name=data[0], email=data[1],
+            address=data[2], telephone=data[3],
+            owner=owner
         )
-        return CHOOSESME_CAT
-    categories = [
-        ['Clothing/Fashion', 'Hardware Accessories'],
-        ['Food/Kitchen Ware', 'ArtnDesign'],
-        ['Other']
-    ]
-    markup = ReplyKeyboardMarkup(categories, one_time_keyboard=True)
-    update.message.reply_text(
-        "Pick a category for your business from the options",
-        reply_markup=markup
-    )
-    return ADD_PRODUCTS
+        # TODO: Add checks for correct len of input data
+        session.add(newbiz)
+        try:
+            session.commit()
+        except IntegrityError:
+            session.rollback()
+            print("Duplicate data")
+            update.message.reply_text(
+                "Business with email already exists, try again"
+            )
+            return CHOOSESME_CAT
+        categories = [
+            ['Clothing/Fashion', 'Hardware Accessories'],
+            ['Food/Kitchen Ware', 'ArtnDesign'],
+            ['Other']
+        ]
+        markup = ReplyKeyboardMarkup(categories, one_time_keyboard=True)
+        update.message.reply_text(
+            "Pick a category for your business from the options",
+            reply_markup=markup
+        )
+        return ADD_PRODUCTS
 
 
 def products(update, context):
