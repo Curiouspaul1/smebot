@@ -270,9 +270,8 @@ def fetch_bizpref(update, context):
         return FETCH_PREFERENCES
     else:
         choice = update.callback_query.data
-        if biz:
-            biz = session.query(Business).filter_by(name=choice).first().product
-        if len(biz) < 1:
+        biz = session.query(Business).filter_by(name=choice).first().product
+        if biz and len(biz) < 1:
             button = [[
                 InlineKeyboardButton(
                     text="View other businesses",
