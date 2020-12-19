@@ -120,28 +120,30 @@ def classer(update, context):
         update.message.reply_text(
             "Type /start, to restart bot"
         )
-    new_user = User(
-        name=name, email=data[1],
-        telephone=data[2]
-    )
-    session.add(new_user)
-    try:
-        session.commit()
-    except IntegrityError:
-        update.message.reply_text(
-            "User with email already exists, try again"
+        return ConversationHandler.END
+    else:
+        new_user = User(
+            name=name, email=data[1],
+            telephone=data[2]
         )
-        print("Error: Duplicate data")
-        session.rollback()
-        return CLASS_STATE
-    global customer
-    customer = new_user
-    update.message.reply_text(
-        text="Collected information succesfully!..🎉🎉 \n"
-        "Which of the following do you identify as ?",
-        reply_markup=markup
-    )
-    return CHOOSING
+        session.add(new_user)
+        try:
+            session.commit()
+        except IntegrityError:
+            update.message.reply_text(
+                "User with email already exists, try again"
+            )
+            print("Error: Duplicate data")
+            session.rollback()
+            return CLASS_STATE
+        global customer
+        customer = new_user
+        update.message.reply_text(
+            text="Collected information succesfully!..🎉🎉 \n"
+            "Which of the following do you identify as ?",
+            reply_markup=markup
+        )
+        return CHOOSING
 
 
 def customer_details(update, context: CallbackContext) -> int:
