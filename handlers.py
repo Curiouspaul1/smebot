@@ -16,6 +16,8 @@ from models import engine, User, Business, Category, Product
 import cloudinary
 from cloudinary.uploader import upload
 from apscheduler.schedulers.background import BackgroundScheduler
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 import time
 
 Session = sessionmaker(bind=engine)
@@ -24,6 +26,19 @@ sched = BackgroundScheduler()
 
 updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
+
+
+# def dispatch_mail():
+#     emails = [
+#         i for i in session.query(User).all() if i.is_smeowner
+#     ]
+#     print(emails)
+#     msg = Mail(
+#         from_email=(os.getenv("sender_email"),'Paul From SmeBot')
+#         to_emails=emails,
+#         subject="Welcome to smebot! - Next Steps",
+        
+#     )
 
 
 # configure cloudinary
