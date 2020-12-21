@@ -8,7 +8,10 @@ from telegram.ext import (
     ConversationHandler, MessageHandler,
     Filters, Updater, CallbackQueryHandler
 )
-from config import TOKEN, api_key, api_secret
+from config import (
+    TOKEN, api_key, sender_email,
+    api_secret, sendgrid_key
+)
 import re
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
@@ -28,17 +31,24 @@ updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 
 
-# def dispatch_mail():
-#     emails = [
-#         i for i in session.query(User).all() if i.is_smeowner
-#     ]
-#     print(emails)
-#     msg = Mail(
-#         from_email=(os.getenv("sender_email"),'Paul From SmeBot')
-#         to_emails=emails,
-#         subject="Welcome to smebot! - Next Steps",
-        
-#     )
+def dispatch_mail():
+    emails = [
+        i.email for i in session.query(User).all() if i.is_smeowner
+    ]
+    print(emails)
+    with open('email.html', 'r') as file:
+        msg = Mail(
+            from_email=(sender_email, 'Paul From SmeBot'),
+            to_emails=emails,
+            subject="Welcome to smebot! - Next Steps",
+            html_content=file.read()
+        )
+    try:
+        client = SendGridAPIClient(sendgrid_key).send(msg)
+        print(client.status_code)
+        print("Done!..")
+    except Exception as e:
+        print(e)
 
 
 # configure cloudinary
