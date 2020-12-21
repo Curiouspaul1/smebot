@@ -1,6 +1,6 @@
 .vscode/
 *__pycache__/
 bot/
-test.py
-test1.py
 *.db
+*.env
+product_image
