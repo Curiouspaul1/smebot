@@ -21,6 +21,7 @@ from cloudinary.uploader import upload
 from apscheduler.schedulers.background import BackgroundScheduler
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+from helpers import emailcheck
 import time
 
 Session = sessionmaker(bind=engine)
@@ -33,7 +34,7 @@ dispatcher = updater.dispatcher
 
 def dispatch_mail():
     emails = [
-        i.email for i in session.query(User).all() if i.is_smeowner
+        i.email for i in session.query(User).all() if i.is_smeowner and emailcheck(i.email)
     ]
     print(emails)
     with open('email.html', 'r') as file:
