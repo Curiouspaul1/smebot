@@ -48,7 +48,7 @@ def dispatch_mail():
         print(client.status_code)
         print("Done!..")
     except Exception as e:
-        print(e)
+        print(e.message)
 
 
 # configure cloudinary
